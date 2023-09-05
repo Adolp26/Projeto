@@ -9,11 +9,16 @@ import api from './services/api'
 import RadioButton from "./Components/RadioButton";
 
 
-
 function App() {
+
+
   const [title, setTitles] = useState('')
   const [notes, setNotes] = useState('')
+  const [allNotes, setAllNotes] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('all')
 
+
+  /*Criação de anotações */
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -26,10 +31,15 @@ function App() {
     setTitles('');
     setNotes('');
 
-    setAllNotes([...allNotes, response.data]);
-
+    if (selectedValue !== 'all') {
+      getAllNotes();
+    } else {
+      setAllNotes([...allNotes, response.data]);
+    }
+    setSelectedValue('all')
   }
 
+  /*Alteração da cor do botão Salvar conforme preenchimento dos campos */
   useEffect(() => {
     function enableSubmitButton() {
       let btn = document.getElementById('btn_submit')
@@ -41,19 +51,66 @@ function App() {
     enableSubmitButton()
   }, [title, notes])
 
-  const [allNotes, setAllNotes] = useState([]);
+
+
+
   useEffect(() => {
 
-    async function getAllNotes() {
-      const response = await api.get('/annotations');
-      setAllNotes(response.data)
-
-    }
     getAllNotes();
 
   }, [])
 
+  /* Listar todos as anotações*/
+  async function getAllNotes() {
+    const response = await api.get('/annotations');
+    setAllNotes(response.data)
 
+  }
+
+  /* Mostrar anotações por radiobuttons*/
+  async function loadNotes(options) {
+    const params = { priority: options };
+    const response = await api.get('/priorities', { params });
+
+    if (response) {
+      setAllNotes(response.data);
+    }
+  }
+
+  /*Verificando valor da prioridade  */
+  function handleChange(e) {
+    setSelectedValue(e.value);
+
+    if (e.checked && e.value !== 'all') {
+      loadNotes(e.value);
+    } else {
+      getAllNotes();
+    }
+  }
+
+
+
+  /*Deletando Cards*/
+  async function handleDelete(id) {
+    const deleteNote = await api.delete(`/annotations/${id}`)
+
+    /* Retornar Cards com base no id após deletar */
+    if (deleteNote) {
+      setAllNotes(allNotes.filter(note => note._id !== id));
+    }
+
+  }
+
+  async function handleChangePriority(id) {
+    const note = await api.put(`/priorities/${id}`)
+
+
+    if (note && selectedValue !== 'all') {
+      loadNotes(selectedValue);
+    } else if (note) {
+      getAllNotes();
+    }
+  }
 
 
   return (
@@ -64,25 +121,32 @@ function App() {
 
           <div className="input-block">
             <label htmlFor="title">Titulo da Anotação</label>
-            <input required value={title} onChange={e => setTitles(e.target.value)} />
+            <input required maxLength="30" value={title} onChange={e => setTitles(e.target.value)} />
           </div>
           <div className="input-block">
             <label htmlFor="nota">Anotações</label>
             <textarea
               required
-              maxLength="30"
               value={notes}
               onChange={e => setNotes(e.target.value)} />
           </div>
           <button id="btn_submit" type="submit">Salvar</button>
         </form>
-        <RadioButton />
+        <RadioButton
+          selectedValue={selectedValue}
+          handleChange={handleChange}
+        />
       </aside>
 
       <main>
         <ul>
           {allNotes.map(data => (
-            <Notes data={data} />
+            <Notes
+              key={data._id}
+              data={data}
+              handleDelete={handleDelete}
+              handleChangePriority={handleChangePriority}
+            />
           ))}
 
         </ul>
