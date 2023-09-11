@@ -78,7 +78,7 @@ function App() {
   }
 
   /*Verificando valor da prioridade  */
-  function handleChange(e) {
+  async function handleChange(e) {
     setSelectedValue(e.value);
 
     if (e.checked && e.value !== 'all') {

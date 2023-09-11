@@ -4,7 +4,7 @@ import Radio from '@material-ui/core/Radio';
 import './style.css'
 
 
-function RadioButton(selectedValue, handleChange) {
+function RadioButton({selectedValue, handleChange}) {
 
 
     const CustomRadio = withStyles({
