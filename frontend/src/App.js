@@ -3,7 +3,7 @@ import './Styles/global.css'
 import './Styles/sidebar.css'
 import './Styles/app.css'
 import './Styles/main.css'
-import Notes from './Components/Notes/annotations'
+import Notes from './Components/Notes'
 import './Styles/Form.css'
 import api from './services/api'
 import RadioButton from "./Components/RadioButton";
